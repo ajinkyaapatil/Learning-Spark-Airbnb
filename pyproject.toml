@@ -1,0 +1,15 @@
+[project]
+name = "spark"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "kaleido>=1.2.0",
+    "marimo>=0.18.4",
+    "matplotlib>=3.10.8",
+    "pyarrow>=22.0.0",
+    "pyspark>=4.1.0",
+    "pyzmq>=27.1.0",
+    "ruff>=0.14.10",
+]
