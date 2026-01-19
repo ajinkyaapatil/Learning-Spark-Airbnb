@@ -1,56 +1,27 @@
-import plotly.express as px
-from pyspark.sql import DataFrame
-from pyspark.sql.functions import col, mean, mode, regexp_replace, udf
-from pyspark.sql.types import StringType
+import time
 
+import plotly.express as px
+import pyspark.sql.functions as F
+from pyspark.sql import DataFrame
+
+from jobs.cleaning_utils import clean_percentage_col, clean_response_time_col
 from jobs.read_data import read_parquet_data
 
 
 def calculate_host_ecosystem_across_cities(listing_data: DataFrame) -> DataFrame:
-    replace_percentage = udf(
-        lambda text: text.replace("%", "").replace("N/A", "0"), StringType()
-    )
-
-    return (
-        listing_data.withColumn(
-            "host_acceptance_rate", replace_percentage(col("host_acceptance_rate"))
-        )
-        .withColumn("host_acceptance_rate", col("host_acceptance_rate").cast("int"))
-        .withColumn("host_response_rate", replace_percentage(col("host_response_rate")))
-        .withColumn("host_response_rate", col("host_response_rate").cast("int"))
-        .withColumn(
-            "host_response_time", regexp_replace("host_response_time", "N/A", "72")
-        )
-        .withColumn(
-            "host_response_time",
-            regexp_replace("host_response_time", "within an hour", "1"),
-        )
-        .withColumn(
-            "host_response_time",
-            regexp_replace("host_response_time", "a few days or more", "48"),
-        )
-        .withColumn(
-            "host_response_time",
-            regexp_replace("host_response_time", "within a day", "24"),
-        )
-        .withColumn(
-            "host_response_time",
-            regexp_replace("host_response_time", "within a few hours", "6"),
-        )
-        .groupby("city")
-        .agg(
-            mean("host_acceptance_rate").alias("avg_host_acceptance_rate"),
-            mean("host_response_rate").alias("avg_host_response_rate"),
-            mean("host_response_time").alias("mode_host_response_time"),
-        )
+    df = clean_percentage_col(listing_data, "host_acceptance_rate")
+    df = clean_percentage_col(df, "host_response_rate")
+    df = clean_response_time_col(df, "host_response_time")
+    return df.groupby("city").agg(
+        F.mean("host_acceptance_rate").alias("avg_host_acceptance_rate"),
+        F.mean("host_response_rate").alias("avg_host_response_rate"),
+        F.mean("host_response_time").alias("avg_host_response_time"),
     )
 
 
 if __name__ == "__main__":
     df = read_parquet_data("./output/extracted_data/listing").fillna("0")
-
     selected_columns = calculate_host_ecosystem_across_cities(df)
-
     px.line(
         selected_columns,
         "city",
@@ -59,12 +30,11 @@ if __name__ == "__main__":
     ).update_layout(yaxis_title="Percentage").write_image(
         "./output/images/hosts/host_acceptance_and_response.png"
     )
-
     px.line(
         selected_columns,
         "city",
-        ["mode_host_response_time"],
-        title="Host Accept",
+        ["avg_host_response_time"],
+        title="Host Response time",
     ).update_layout(yaxis_title="Hours").write_image(
         "./output/images/hosts/host_response_time.png"
     )

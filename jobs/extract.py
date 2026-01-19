@@ -1,4 +1,5 @@
 import os
+import time
 
 from pyspark.sql.functions import (
     col,
@@ -25,6 +26,8 @@ def extract_listing_data():
         .withColumn("price", regexp_replace(col("price"), "[$|,]", "").cast("double"))
     )
     write_parquet(extract_selected_column, path_output, partition_by="city")
+
+    time.sleep(10000)
 
 
 def extract_review_data():
