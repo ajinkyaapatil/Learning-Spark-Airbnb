@@ -1,11 +1,10 @@
 #!/usr/bin/env just --justfile
 
 default:
-  just --list
+    just --list
 
 upgrade:
-  uv lock --upgrade
+    uv lock --upgrade
 
 run target:
-  .venv/bin/python -m jobs.{{target}}
-
+    uv run -m jobs.{{ target }}
