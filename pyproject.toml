@@ -8,6 +8,7 @@ dependencies = [
     "kaleido>=1.2.0",
     "marimo>=0.18.4",
     "matplotlib>=3.10.8",
+    "openai>=2.15.0",
     "pyarrow>=22.0.0",
     "pyspark>=4.1.0",
     "pyzmq>=27.1.0",

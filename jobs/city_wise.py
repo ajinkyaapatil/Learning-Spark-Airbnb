@@ -7,7 +7,7 @@ from jobs.write import write_csv
 
 def city_wise_data(dataframe: DataFrame) -> DataFrame:
     return (
-        dataframe.filter(F.col("availability_365") <= 365)
+        dataframe.filter(F.col("availability_365").cast("int") <= 365)
         .groupby("city")
         .agg(
             F.count("id").alias("count"),
