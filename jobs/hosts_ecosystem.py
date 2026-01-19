@@ -1,19 +1,18 @@
 import plotly.express as px
+from pyspark.sql import DataFrame
 from pyspark.sql.functions import col, mean, mode, regexp_replace, udf
 from pyspark.sql.types import StringType
 
 from jobs.read_data import read_parquet_data
 
 
-def check_host_acceptance_across_cities():
-    df = read_parquet_data("./output/extracted_data/listing").fillna("0")
-
+def calculate_host_ecosystem_across_cities(listing_data: DataFrame) -> DataFrame:
     replace_percentage = udf(
         lambda text: text.replace("%", "").replace("N/A", "0"), StringType()
     )
 
-    selected_columns = (
-        df.withColumn(
+    return (
+        listing_data.withColumn(
             "host_acceptance_rate", replace_percentage(col("host_acceptance_rate"))
         )
         .withColumn("host_acceptance_rate", col("host_acceptance_rate").cast("int"))
@@ -46,6 +45,12 @@ def check_host_acceptance_across_cities():
         )
     )
 
+
+if __name__ == "__main__":
+    df = read_parquet_data("./output/extracted_data/listing").fillna("0")
+
+    selected_columns = calculate_host_ecosystem_across_cities(df)
+
     px.line(
         selected_columns,
         "city",
@@ -63,7 +68,3 @@ def check_host_acceptance_across_cities():
     ).update_layout(yaxis_title="Hours").write_image(
         "./output/images/hosts/host_response_time.png"
     )
-
-
-if __name__ == "__main__":
-    check_host_acceptance_across_cities()
