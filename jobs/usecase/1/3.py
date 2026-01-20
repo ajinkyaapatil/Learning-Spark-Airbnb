@@ -48,7 +48,7 @@ def plot_graphs(df: DataFrame, title: str, columns: list[str]):
     for column in columns:
         plot.add_hline(y=max_values[column], line_dash="dash", annotation={"text": f"max {column}"})
 
-    plot.write_image(f"./output/images/{usercase}/{title}.png")
+    plot.write_html(f"./output/images/{usercase}/{title}.html")
 
 
 def main():

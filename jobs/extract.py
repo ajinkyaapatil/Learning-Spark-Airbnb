@@ -1,4 +1,5 @@
 import os
+from time import time
 
 import pyspark.sql.functions as F
 from pyspark.sql import DataFrame
@@ -110,4 +111,6 @@ COLUMNS = [
 ]
 
 if __name__ == "__main__":
+    t = time()
     extract_listing_data()
+    print(f"Time taken: {time() - t}s")
