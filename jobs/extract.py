@@ -34,7 +34,8 @@ def extract_listing_data():
         )
         .filter(F.col("rn") == 1)
         .drop("rn")
-    )
+    ).cache()
+
     write_parquet(latest_with_price, path_output, partition_by="city")
 
     latest_with_price.printSchema()
@@ -56,7 +57,7 @@ def extract_review_data():
 COLUMNS = [
     col("id").cast(LongType()),
     col("last_scraped").cast(DateType()),
-    F.try_to_number("price", F.lit("$999,999,999.99")).cast("double"),
+    F.try_to_number("price", F.lit("$999,999,999.99")).cast(DoubleType()).alias("price"),
     col("accommodates").try_cast(DoubleType()),
     col("estimated_occupancy_l365d").try_cast(DoubleType()).alias("occupancy"),
     col("host_id").cast(LongType()),
