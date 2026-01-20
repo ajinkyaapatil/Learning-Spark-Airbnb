@@ -87,7 +87,7 @@ def test_should_return_listing_per_host_for_a_city(
         ("60", "2", "1", "pune"),
     ]
 
-    output_data = [("pune", 3, 60.0, 1, 2.0)]
+    output_data = [("pune", 3, 60.0, 1, 3.0)]
     input_dataframe = spark_session.createDataFrame(input_data, input_schema)
     output_dataframe = spark_session.createDataFrame(output_data, extracted_schema)
 
