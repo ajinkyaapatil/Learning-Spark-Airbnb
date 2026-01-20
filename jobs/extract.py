@@ -1,13 +1,14 @@
 import os
-import time
 
+import pyspark.sql.functions as F
 from pyspark.sql.functions import (
     col,
     input_file_name,
     regexp_extract,
-    regexp_replace,
     split,
 )
+from pyspark.sql.types import DateType, DoubleType, LongType
+from pyspark.sql.window import Window
 
 from jobs.read_data import read_csv_data
 from jobs.write import write_parquet
@@ -22,12 +23,22 @@ def extract_listing_data():
     extract_selected_column = (
         df.select(COLUMNS)
         .withColumn("city", regexp_extract(input_file_name(), "\\/([^/]*)$", 1))
-        .withColumn("city", split(col("city"), "_").getItem(1))
-        .withColumn("price", regexp_replace(col("price"), "[$|,]", "").cast("double"))
+        .withColumn("city", split("city", "_").getItem(1))
+        .dropna()
+        # .filter(col("price").isNotNull())
     )
-    write_parquet(extract_selected_column, path_output, partition_by="city")
 
-    time.sleep(10000)
+    latest_with_price = (
+        extract_selected_column.withColumn(
+            "rn", F.row_number().over(Window.partitionBy("id").orderBy(F.col("last_scraped").desc()))
+        )
+        .filter(F.col("rn") == 1)
+        .drop("rn")
+    )
+    write_parquet(latest_with_price, path_output, partition_by="city")
+
+    latest_with_price.printSchema()
+    print(latest_with_price.count())
 
 
 def extract_review_data():
@@ -39,31 +50,31 @@ def extract_review_data():
         .withColumn("city", split(col("city"), "_").getItem(1))
         .withColumnRenamed("id", "review_id")
     )
-    write_parquet(
-        extracted_review_data, "./output/extracted_data/reviews", partition_by="city"
-    )
+    write_parquet(extracted_review_data, "./output/extracted_data/reviews", partition_by="city")
 
 
 COLUMNS = [
-    "id",
-    "price",
-    "accommodates",
-    "availability_365",
-    "host_id",
-    "host_acceptance_rate",
-    "host_response_rate",
-    "host_response_time",
-    "review_scores_rating",
-    "review_scores_accuracy",
-    "review_scores_cleanliness",
-    "review_scores_checkin",
-    "review_scores_communication",
-    "review_scores_location",
-    "review_scores_value",
-    "number_of_reviews",
-    "number_of_reviews_ltm",
-    "number_of_reviews_l30d",
-    "number_of_reviews_ly",
+    col("id").cast(LongType()),
+    col("last_scraped").cast(DateType()),
+    F.try_to_number("price", F.lit("$999,999,999.99")).cast("double"),
+    col("accommodates").try_cast(DoubleType()),
+    col("availability_365").try_cast(DoubleType()),
+    col("estimated_occupancy_l365d").try_cast(DoubleType()),
+    col("host_id").cast(LongType()),
+    F.replace(col("host_acceptance_rate"), F.lit("%")).try_cast(DoubleType()).alias("host_acceptance_rate"),
+    F.replace(col("host_response_rate"), F.lit("%")).try_cast(DoubleType()).alias("host_response_rate"),
+    col("host_response_time"),
+    # col("review_scores_rating").cast(DoubleType()),
+    # col("review_scores_accuracy").cast(DoubleType()),
+    # col("review_scores_cleanliness").cast(DoubleType()),
+    # col("review_scores_checkin").cast(DoubleType()),
+    # col("review_scores_communication").cast(DoubleType()),
+    # col("review_scores_location").cast(DoubleType()),
+    # col("review_scores_value").cast(DoubleType()),
+    # col("number_of_reviews").cast(LongType()),
+    # col("number_of_reviews_ltm").cast(LongType()),
+    # col("number_of_reviews_l30d").cast(LongType()),
+    # col("number_of_reviews_ly").cast(LongType()),
 ]
 
 if __name__ == "__main__":
