@@ -30,7 +30,15 @@ def calculate_host_ecosystem_across_cities(listing_data: DataFrame) -> DataFrame
             F.mean("host_acceptance_rate").alias("avg_host_acceptance_rate"),
             F.mean("host_response_rate").alias("avg_host_response_rate"),
             F.mean("host_response_time").alias("avg_host_response_time"),
+            F.mean("review_scores_rating").alias("avg_review_scores_rating"),
+            F.mean("review_scores_accuracy").alias("avg_review_scores_accuracy"),
+            F.mean("review_scores_cleanliness").alias("avg_review_scores_cleanliness"),
+            F.mean("review_scores_checkin").alias("avg_review_scores_checkin"),
+            F.mean("review_scores_communication").alias("avg_review_scores_communication"),
+            F.mean("review_scores_location").alias("avg_review_scores_location"),
+            F.mean("review_scores_value").alias("avg_review_scores_value"),
         )
+        .orderBy("avg_review_scores_rating")
     )
 
 
@@ -61,4 +69,23 @@ if __name__ == "__main__":
         )
         .update_layout(yaxis_title="Hours")
         .write_html("./output/images/hosts/host_response_time.html")
+    )
+
+    (
+        px.line(
+            selected_columns,
+            "city",
+            [
+                "avg_review_scores_rating",
+                "avg_review_scores_accuracy",
+                "avg_review_scores_cleanliness",
+                "avg_review_scores_checkin",
+                "avg_review_scores_communication",
+                "avg_review_scores_location",
+                "avg_review_scores_value",
+            ],
+            title="Listing Reviews",
+        )
+        .update_layout(yaxis_title="Rating")
+        .write_html("./output/images/hosts/listing_rating.html")
     )
