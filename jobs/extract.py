@@ -95,6 +95,8 @@ COLUMNS = [
     F.col("last_scraped").cast(DateType()),
     F.try_to_number("price", F.lit("$999,999,999.99")).cast(DoubleType()).alias("price"),
     F.col("accommodates").try_cast(DoubleType()),
+    F.col("bedrooms").try_cast(DoubleType()),
+    F.col("bathrooms").try_cast(DoubleType()),
     F.col("estimated_occupancy_l365d").try_cast(DoubleType()).alias("occupancy"),
     F.col("host_id").cast(LongType()),
     F.replace(F.col("host_acceptance_rate"), F.lit("%")).try_cast(DoubleType()).alias("host_acceptance_rate"),

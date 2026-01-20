@@ -47,18 +47,18 @@ if __name__ == "__main__":
     price_tier_count_dataframe = aggregate_tier_count(df)
     save_tier_count_bar_graph()
 
-    data = df.groupBy("city_name", "price_tier").agg(
+    data = df.groupBy("city", "listing_tier").agg(
         F.avg("amenities_count").alias("avg_amenities"),
         F.avg("bedrooms").alias("avg_bedrooms"),
         F.avg("bathrooms").alias("avg_bathrooms"),
     )
 
-    for y_name in ["avg_amenities", "avg_bedrooms", "avg_bathrooms", "avg_rating"]:
+    for y_name in ["avg_amenities", "avg_bedrooms", "avg_bathrooms"]:
         fig = px.bar(
             data,
-            x="city_name",
+            x="city",
             y=y_name,
-            color="price_tier",
+            color="listing_tier",
             barmode="group",
         )
         fig.write_html(f"./output/images/price-tier-{y_name}.html")
