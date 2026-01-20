@@ -4,8 +4,28 @@ import plotly.express as px
 import pyspark.sql.functions as F
 from pyspark.sql import DataFrame
 
-from jobs.cleaning_utils import clean_percentage_col, clean_response_time_col
 from jobs.read_data import read_parquet_data
+
+
+def clean_percentage_col(df, col_name):
+    return (
+        df.withColumn(col_name, F.regexp_replace(F.col(col_name), "%", ""))
+        .withColumn(col_name, F.regexp_replace(F.col(col_name), "N/A", "0"))
+        .withColumn(col_name, F.col(col_name).cast("int"))
+    )
+
+
+def clean_response_time_col(df, col_name):
+    mapping = {
+        "within an hour": "1",
+        "a few days or more": "48",
+        "within a day": "24",
+        "within a few hours": "6",
+        "N/A": "72",
+    }
+    return df.replace(mapping, subset=[col_name]).withColumn(
+        col_name, F.col(col_name).cast("int")
+    )
 
 
 def calculate_host_ecosystem_across_cities(listing_data: DataFrame) -> DataFrame:

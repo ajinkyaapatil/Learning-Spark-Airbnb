@@ -3,7 +3,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.types import IntegerType, StringType, StructField, StructType
 from pyspark.testing import assertDataFrameEqual
 
-from jobs.cleaning_utils import clean_percentage_col, clean_response_time_col
+from jobs.hosts_ecosystem import clean_percentage_col, clean_response_time_col
 
 
 @pytest.fixture(scope="module")

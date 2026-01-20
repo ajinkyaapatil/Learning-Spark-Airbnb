@@ -8,3 +8,6 @@ upgrade:
 
 run target:
     uv run -m jobs.{{ target }}
+
+test:
+    uv run -m pytest --cov=. Tests/ --cov-report html
