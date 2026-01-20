@@ -1,6 +1,7 @@
 import os
 
 import pyspark.sql.functions as F
+from pyspark.sql import DataFrame
 from pyspark.sql.functions import (
     col,
     input_file_name,
@@ -17,16 +18,44 @@ path = os.getenv("SPARK_DATA_PATH", default="./data/listings")
 path_output = os.getenv("SPARK_OUTPUT_PATH", default="./output/extracted_data/listing")
 
 
+def convert_price_to_usd(df: DataFrame) -> DataFrame:
+    conversion_rates = {
+        "new-york-city": 1.0,
+        "los-angeles": 1.0,
+        "san-francisco": 1.0,
+        "chicago": 1.0,
+        "austin": 1.0,
+        "london": 1.347,
+        "paris": 1.166,
+        "barcelona": 1.166,
+        "amsterdam": 1.166,
+        "berlin": 1.166,
+        "tokyo": 0.0063,
+        "sydney": 0.671,
+        "bangkok": 0.032,
+        "toronto": 0.721,
+        "mexico-city": 0.056,
+    }
+
+    c = F.when(F.col("city") == "", 1.0)
+    for city, rate in conversion_rates.items():
+        c = c.when(F.col("city") == city, rate)
+    c.otherwise(1.0)
+
+    return df.withColumn("price", c * F.col("price"))
+
+
+
 def extract_listing_data():
     df = read_csv_data(path)
-
     extract_selected_column = (
         df.select(COLUMNS)
+        .dropna()
         .withColumn("city", regexp_extract(input_file_name(), "\\/([^/]*)$", 1))
         .withColumn("city", split("city", "_").getItem(1))
-        .dropna()
-        # .filter(col("price").isNotNull())
+        .transform(convert_price_to_usd)
     )
+
 
     latest_with_price = (
         extract_selected_column.withColumn(

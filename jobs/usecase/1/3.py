@@ -11,33 +11,6 @@ def select_required_columns(df: DataFrame) -> DataFrame:
     return df.select("city", "price", "occupancy")
 
 
-def convert_price_to_usd(df: DataFrame) -> DataFrame:
-    conversion_rates = {
-        "new-york-city": 1.0,
-        "los-angeles": 1.0,
-        "san-francisco": 1.0,
-        "chicago": 1.0,
-        "austin": 1.0,
-        "london": 1.347,
-        "paris": 1.166,
-        "barcelona": 1.166,
-        "amsterdam": 1.166,
-        "berlin": 1.166,
-        "tokyo": 0.0063,
-        "sydney": 0.671,
-        "bangkok": 0.032,
-        "toronto": 0.721,
-        "mexico-city": 0.056,
-    }
-
-    c = F.when(F.col("city") == "", 1.0)
-    for city, rate in conversion_rates.items():
-        c = c.when(F.col("city") == city, rate)
-    c.otherwise(1.0)
-
-    return df.withColumn("price", c * F.col("price"))
-
-
 def calculate_revenue(df: DataFrame) -> DataFrame:
     return df.withColumns(
         {
@@ -82,7 +55,6 @@ def main():
     listings = (
         read_parquet_data("./output/extracted_data/listing")
         .transform(select_required_columns)
-        .transform(convert_price_to_usd)
         .transform(calculate_revenue)
     )
 
