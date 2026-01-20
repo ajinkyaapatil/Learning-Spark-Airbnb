@@ -1,3 +1,5 @@
+import os
+
 import plotly.express as px
 import pyspark.sql.functions as F
 from pyspark.sql import DataFrame
@@ -36,15 +38,27 @@ if __name__ == "__main__":
     df = read_parquet_data("./output/extracted_data/listing")
 
     selected_columns = calculate_host_ecosystem_across_cities(df)
-    px.line(
-        selected_columns,
-        "city",
-        ["avg_host_acceptance_rate", "avg_host_response_rate"],
-        title="Host Accept",
-    ).update_layout(yaxis_title="Percentage").write_image("./output/images/hosts/host_acceptance_and_response.png")
-    px.line(
-        selected_columns,
-        "city",
-        ["avg_host_response_time"],
-        title="Host Response time",
-    ).update_layout(yaxis_title="Hours").write_image("./output/images/hosts/host_response_time.png")
+
+    os.makedirs("./output/images/hosts", exist_ok=True)
+
+    (
+        px.line(
+            selected_columns,
+            "city",
+            ["avg_host_acceptance_rate", "avg_host_response_rate"],
+            title="Host Accept",
+        )
+        .update_layout(yaxis_title="Percentage")
+        .write_html("./output/images/hosts/host_acceptance_and_response.html")
+    )
+
+    (
+        px.line(
+            selected_columns,
+            "city",
+            ["avg_host_response_time"],
+            title="Host Response time",
+        )
+        .update_layout(yaxis_title="Hours")
+        .write_html("./output/images/hosts/host_response_time.html")
+    )
