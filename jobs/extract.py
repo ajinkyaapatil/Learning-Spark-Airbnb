@@ -3,7 +3,7 @@ from time import time
 
 import pyspark.sql.functions as F
 from pyspark.sql import DataFrame
-from pyspark.sql.types import DateType, DoubleType, LongType
+from pyspark.sql.types import DateType, DoubleType, LongType, StringType
 from pyspark.sql.window import Window
 
 from jobs.read_data import read_csv_data
@@ -39,6 +39,8 @@ def convert_price_to_usd(df: DataFrame) -> DataFrame:
 
     return df.withColumn("price", c * F.col("price"))
 
+def create_amenities_count(df: DataFrame) -> DataFrame:
+    return df.withColumn("amenities_count", F.size(F.split(F.col("amenities"), ",")))
 
 def get_latest_price(df: DataFrame) -> DataFrame:
     return (
@@ -67,6 +69,7 @@ def extract_listing_data():
         .localCheckpoint()
         .transform(get_latest_price)
         .transform(convert_price_to_usd)
+        .transform(create_amenities_count)
     )
 
     write_parquet(df, path_output)
@@ -108,6 +111,7 @@ COLUMNS = [
     F.col("number_of_reviews_ltm").try_cast(LongType()),
     F.col("number_of_reviews_l30d").try_cast(LongType()),
     F.col("number_of_reviews_ly").try_cast(LongType()),
+    F.col("amenities").try_cast(StringType()),
 ]
 
 if __name__ == "__main__":
