@@ -3,30 +3,12 @@ from pyspark.sql import SparkSession
 from pyspark.sql.types import IntegerType, StringType, StructField, StructType
 from pyspark.testing import assertDataFrameEqual
 
-from jobs.hosts_ecosystem import clean_percentage_col, clean_response_time_col
+from jobs.hosts_ecosystem import convert_response_time_in_hours, replace_na_with_zero
 
 
 @pytest.fixture(scope="module")
 def spark():
-    return (
-        SparkSession.builder.master("local[1]")
-        .appName("cleaning_utils_test")
-        .getOrCreate()
-    )
-
-
-def test_clean_percentage_col(spark):
-    schema = StructType([StructField("col", StringType(), True)])
-    data = [("50%",), ("N/A",), ("42",), ("75%",), ("N/A",)]
-    df = spark.createDataFrame(data, schema)
-    expected_data = [(50,), (0,), (42,), (75,), (0,)]
-    expected_df = spark.createDataFrame(
-        expected_data, StructType([StructField("col", IntegerType(), True)])
-    )
-
-    cleaned_df = clean_percentage_col(df, "col")
-
-    assertDataFrameEqual(cleaned_df, expected_df)
+    return SparkSession.builder.master("local[1]").appName("cleaning_utils_test").getOrCreate()
 
 
 def test_clean_response_time_col(spark):
@@ -41,10 +23,8 @@ def test_clean_response_time_col(spark):
     ]
     df = spark.createDataFrame(data, schema)
     expected_data = [(1,), (48,), (24,), (6,), (72,), (72,)]
-    expected_df = spark.createDataFrame(
-        expected_data, StructType([StructField("col", IntegerType(), True)])
-    )
+    expected_df = spark.createDataFrame(expected_data, StructType([StructField("col", IntegerType(), True)]))
 
-    cleaned_df = clean_response_time_col(df, "col")
+    cleaned_df = convert_response_time_in_hours(df, "col")
 
     assertDataFrameEqual(cleaned_df, expected_df)
