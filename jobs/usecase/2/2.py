@@ -39,20 +39,7 @@ def save_tier_count_bar_graph():
     fig.write_html("./output/images/listing_tier_comparison.html")
 
 
-
-if __name__ == "__main__":
-    df = read_parquet_data("./output/extracted_data/listing").transform(select_required_columns).transform(
-        create_listing_tier_comparison)
-
-    price_tier_count_dataframe = aggregate_tier_count(df)
-    save_tier_count_bar_graph()
-
-    data = df.groupBy("city", "listing_tier").agg(
-        F.avg("amenities_count").alias("avg_amenities"),
-        F.avg("bedrooms").alias("avg_bedrooms"),
-        F.avg("bathrooms").alias("avg_bathrooms"),
-    )
-
+def save_budget_luxury_comp_graph():
     for y_name in ["avg_amenities", "avg_bedrooms", "avg_bathrooms"]:
         fig = px.bar(
             data,
@@ -62,6 +49,26 @@ if __name__ == "__main__":
             barmode="group",
         )
         fig.write_html(f"./output/images/budget_luxury/price-tier-{y_name}.html")
+
+
+def aggregate_tier_wise_comparison() -> DataFrame:
+    return df.groupBy("city", "listing_tier").agg(
+        F.avg("amenities_count").alias("avg_amenities"),
+        F.avg("bedrooms").alias("avg_bedrooms"),
+        F.avg("bathrooms").alias("avg_bathrooms"),
+    )
+
+
+if __name__ == "__main__":
+    df = read_parquet_data("./output/extracted_data/listing").transform(select_required_columns).transform(
+        create_listing_tier_comparison)
+
+    price_tier_count_dataframe = aggregate_tier_count(df)
+    save_tier_count_bar_graph()
+
+    data = aggregate_tier_wise_comparison()
+
+    save_budget_luxury_comp_graph()
 
 
 
