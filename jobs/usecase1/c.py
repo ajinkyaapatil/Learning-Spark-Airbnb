@@ -44,7 +44,7 @@ def _get_maxes(df: DataFrame, columns: list[str]) -> dict[str, float]:
 def plot_graphs(df: DataFrame, title: str, columns: list[str]):
     max_values = _get_maxes(df, columns)
 
-    plot = px.line(df, x="city", y=columns, title=title)
+    plot = px.bar(df, x="city", y=columns, title=title, barmode="group")
     for column in columns:
         plot.add_hline(y=max_values[column], line_dash="dash", annotation={"text": f"max {column}"})
 

@@ -29,7 +29,7 @@ def _get_maxes(df: DataFrame, columns: list[str]) -> dict[str, float]:
 def plot_graphs(df: DataFrame, title: str, columns: list[str]):
     max_values = _get_maxes(df, columns)
 
-    plot = px.line(df, x="city", y=columns, title=title)
+    plot = px.bar(df, x="city", y=columns, title=title, barmode="group")
     for column in columns:
         plot.add_hline(y=max_values[column], line_dash="dash", annotation={"text": f"max {column}"})
 
@@ -64,13 +64,11 @@ def main():
             )
         )
 
-        s = 10**b
-        e = 10**b * 10
+        s = 10**(b-1)
+        e = 10**b
         plot_graphs(aggregates, f"accomodates_{s}-{e}", ["mean_accomodates", "median_accomodates"])
         plot_graphs(
-            aggregates,
-            f"bed_bath_{s}-{e}",
-            ["mean_bathrooms", "median_bathrooms", "mean_bedrooms", "median_bedrooms"],
+            aggregates, f"bed_bath_{s}-{e}", ["mean_bathrooms", "median_bathrooms", "mean_bedrooms", "median_bedrooms"]
         )
         plot_graphs(aggregates, f"amenities_{s}-{e}", ["mean_amenities", "median_amenities"])
 
