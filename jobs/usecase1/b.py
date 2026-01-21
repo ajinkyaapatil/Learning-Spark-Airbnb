@@ -9,9 +9,9 @@ from jobs.read_data import read_parquet_data
 
 response_time_to_hours = {
     "within an hour": "1",
-    "a few days or more": "48",
-    "within a day": "24",
     "within a few hours": "6",
+    "within a day": "24",
+    "a few days or more": "48",
     "N/A": "72",
 }
 

@@ -3,7 +3,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.types import DoubleType, IntegerType, StringType, StructField, StructType
 from pyspark.testing.utils import assertDataFrameEqual
 
-from jobs.hosts_ecosystem import calculate_host_ecosystem_across_cities, convert_response_time_in_hours
+from jobs.usecase1.b import calculate_host_ecosystem_across_cities, convert_response_time_in_hours
 
 
 @pytest.fixture(scope="session")
