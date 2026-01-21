@@ -50,20 +50,25 @@ def save_host_count(dataframe: DataFrame) -> None:
     fig_2.write_html("./output/images/market_size/host_count.html")
 
 
+def save_average_booking_per_month():
+    fig = px.line(data_frame=booking_by_month, x="booking_month", y="avg_booking_per_listing", color="city")
+    fig.update_layout(
+        xaxis_title="Month",
+        yaxis_title="Average Booking per Listing",
+        title="Average Booking per Listing per City per Month",
+    )
+    fig.write_html("./output/images/market_size/booking_by_month.html")
+
+
 if __name__ == "__main__":
     df = read_parquet_data("./output/extracted_data/listing")
     calendar_df = read_parquet_data("./output/extracted_data/calendar").transform(extract_calendar_month)
 
-    calendar_df.show()
-
     booking_by_month = get_median_booking_by_city(calendar_df)
-
-    # group_by_city = get_market_size(df)
-
-    booking_by_month.show()
+    market_size_by_city = get_market_size(df)
 
     os.makedirs("./output/images/market_size", exist_ok=True)
-    # save_listing_count()
-    # save_host_count()
+    save_listing_count(market_size_by_city)
+    save_host_count(market_size_by_city)
+    save_average_booking_per_month()
 
-    px.line(data_frame=booking_by_month, x="booking_month", y="avg_booking_per_listing", color="city").show()
