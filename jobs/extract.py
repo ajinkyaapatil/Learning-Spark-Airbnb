@@ -39,8 +39,10 @@ def convert_price_to_usd(df: DataFrame) -> DataFrame:
 
     return df.withColumn("price", c * F.col("price"))
 
+
 def create_amenities_count(df: DataFrame) -> DataFrame:
     return df.withColumn("amenities_count", F.size(F.split(F.col("amenities"), ",")))
+
 
 def get_latest_price(df: DataFrame) -> DataFrame:
     return (
@@ -116,7 +118,31 @@ COLUMNS = [
     F.col("amenities").try_cast(StringType()),
 ]
 
+
+def remove_available_days(df):
+    return df.filter(F.col("available") == "f")
+
+
+def extract_calendar_data():
+    calendar_data_path = os.getenv("SPARK_DATA_PATH", default="./data/calendar")
+    calendar_path_output = os.getenv("SPARK_OUTPUT_PATH", default="./output/extracted_data/calendar")
+
+    columns = ["listing_id", "date", "available"]
+    df = (
+        read_csv_data(calendar_data_path, sr=0.01)
+        .select(columns)
+        .transform(remove_available_days)
+        .transform(add_city)
+    )
+
+    write_parquet(df, calendar_path_output)
+
+    df.printSchema()
+    print(df.count())
+
+
 if __name__ == "__main__":
     t = time()
     extract_listing_data()
+    extract_calendar_data()
     print(f"Time taken: {time() - t}s")
