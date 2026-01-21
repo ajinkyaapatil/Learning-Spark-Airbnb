@@ -1,10 +1,11 @@
+import os
+
 import plotly.express as px
 import pyspark.sql.functions as F
 from pyspark.sql import DataFrame
 from pyspark.sql.types import DoubleType, IntegerType
 
 from jobs.read_data import read_parquet_data
-
 
 usercase = "sameprice"
 
@@ -42,6 +43,8 @@ def main():
         .transform(add_bin_number)
         .transform(add_number_of_amenities)
     ).cache()
+
+    os.makedirs("./output/images/sameprice/", exist_ok=True)
 
     bins = listings.select("bin").distinct().collect()
     for row in bins:
