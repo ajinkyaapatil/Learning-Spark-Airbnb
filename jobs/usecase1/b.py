@@ -50,29 +50,31 @@ if __name__ == "__main__":
     os.makedirs("./output/images/hosts", exist_ok=True)
 
     (
-        px.line(
+        px.bar(
             selected_columns,
             "city",
             ["avg_host_acceptance_rate", "avg_host_response_rate"],
-            title="Host Accept",
+            title="Host Acceptance and Response Rate",
+            barmode="group",
         )
         .update_layout(yaxis_title="Percentage")
         .write_html("./output/images/hosts/host_acceptance_and_response.html")
     )
 
     (
-        px.line(
-            selected_columns,
+        px.bar(
+            selected_columns.orderBy("avg_host_response_time"),
             "city",
             ["avg_host_response_time"],
             title="Host Response time",
+            barmode="group",
         )
         .update_layout(yaxis_title="Hours")
         .write_html("./output/images/hosts/host_response_time.html")
     )
 
     (
-        px.line(
+        px.bar(
             selected_columns,
             "city",
             [
@@ -85,6 +87,8 @@ if __name__ == "__main__":
                 "avg_review_scores_value",
             ],
             title="Listing Reviews",
+            barmode="group",
+            range_y=[4.4, 5],
         )
         .update_layout(yaxis_title="Rating")
         .write_html("./output/images/hosts/listing_rating.html")

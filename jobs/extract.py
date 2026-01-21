@@ -80,18 +80,6 @@ def extract_listing_data():
     print(df.count())
 
 
-def extract_review_data():
-    df = read_csv_data("./data/reviews")
-
-    extracted_review_data = (
-        df.select("listing_id", "id")
-        .withColumn("city", F.regexp_extract(F.input_file_name(), "\\/([^/]*)$", 1))
-        .withColumn("city", F.split(F.col("city"), "_").getItem(1))
-        .withColumnRenamed("id", "review_id")
-    )
-    write_parquet(extracted_review_data, "./output/extracted_data/reviews", partition_by="city")
-
-
 COLUMNS = [
     F.col("id").cast(LongType()),
     F.col("last_scraped").cast(DateType()),
@@ -128,12 +116,7 @@ def extract_calendar_data():
     calendar_path_output = os.getenv("SPARK_OUTPUT_PATH", default="./output/extracted_data/calendar")
 
     columns = ["listing_id", "date", "available"]
-    df = (
-        read_csv_data(calendar_data_path, sr=0.01)
-        .select(columns)
-        .transform(remove_available_days)
-        .transform(add_city)
-    )
+    df = read_csv_data(calendar_data_path, sr=0.01).select(columns).transform(remove_available_days).transform(add_city)
 
     write_parquet(df, calendar_path_output)
 
