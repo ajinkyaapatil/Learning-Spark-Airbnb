@@ -11,3 +11,6 @@ run target:
 
 test:
     uv run -m pytest --cov=. Tests/ --cov-report html
+
+download:
+    uv run download.py

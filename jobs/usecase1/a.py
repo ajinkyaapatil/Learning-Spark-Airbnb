@@ -8,13 +8,9 @@ from jobs.read_data import read_parquet_data
 
 
 def get_market_size(dataframe: DataFrame) -> DataFrame:
-    return (
-        dataframe
-        .groupby("city")
-        .agg(
-            F.countDistinct("id").alias("number_of_listings_per_city"),
-            F.countDistinct("host_id").alias("number_of_hosts_per_city"),
-        )
+    return dataframe.groupby("city").agg(
+        F.countDistinct("id").alias("number_of_listings_per_city"),
+        F.countDistinct("host_id").alias("number_of_hosts_per_city"),
     )
 
 
@@ -23,31 +19,35 @@ def extract_calendar_month(dataframe: DataFrame) -> DataFrame:
 
 
 def get_median_booking_by_city(data_frame: DataFrame) -> DataFrame:
-    return data_frame.groupby("city", "booking_month", "listing_id") \
-        .agg(F.count("listing_id").alias("booking_count"), ) \
-        .groupby("city", "booking_month") \
-        .agg(F.avg("booking_count").alias("avg_booking_per_listing")) \
+    return (
+        data_frame.groupby("city", "booking_month", "listing_id")
+        .agg(
+            F.count("listing_id").alias("booking_count"),
+        )
+        .groupby("city", "booking_month")
+        .agg(F.avg("booking_count").alias("avg_booking_per_listing"))
         .orderBy("city", "booking_month")
+    )
 
 
-def save_listing_count(dataframe: DataFrame) -> None:
+def save_hosts_count(dataframe: DataFrame) -> None:
     fig_1 = px.bar(data_frame=dataframe, x="city", y="number_of_hosts_per_city")
     fig_1.update_layout(
         xaxis_title="City",
         yaxis_title="Number of Hosts",
         title="Number of Hosts per City",
     )
-    fig_1.write_html("./output/images/market_size/listing_count.html")
+    fig_1.write_html("./output/images/market_size/host_count.html")
 
 
-def save_host_count(dataframe: DataFrame) -> None:
+def save_listings_count(dataframe: DataFrame) -> None:
     fig_2 = px.bar(data_frame=dataframe, x="city", y="number_of_listings_per_city")
     fig_2.update_layout(
         xaxis_title="City",
         yaxis_title="Number of Listings",
         title="Number of Listings per City",
     )
-    fig_2.write_html("./output/images/market_size/host_count.html")
+    fig_2.write_html("./output/images/market_size/listing_count.html")
 
 
 def save_average_booking_per_month():
@@ -68,7 +68,6 @@ if __name__ == "__main__":
     market_size_by_city = get_market_size(df)
 
     os.makedirs("./output/images/market_size", exist_ok=True)
-    save_listing_count(market_size_by_city)
-    save_host_count(market_size_by_city)
+    save_hosts_count(market_size_by_city)
+    save_listings_count(market_size_by_city)
     save_average_booking_per_month()
-
