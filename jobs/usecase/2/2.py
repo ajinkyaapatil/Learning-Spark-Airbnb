@@ -61,7 +61,7 @@ if __name__ == "__main__":
             color="listing_tier",
             barmode="group",
         )
-        fig.write_html(f"./output/images/price-tier-{y_name}.html")
+        fig.write_html(f"./output/images/budget_luxury/price-tier-{y_name}.html")
 
 
 
