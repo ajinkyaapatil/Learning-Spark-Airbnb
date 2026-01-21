@@ -3,7 +3,7 @@ import os
 import plotly.express as px
 import pyspark.sql.functions as F
 from pyspark.sql import DataFrame
-from pyspark.sql.types import DoubleType, IntegerType
+from pyspark.sql.types import IntegerType
 
 from jobs.read_data import read_parquet_data
 
@@ -11,15 +11,11 @@ usercase = "sameprice"
 
 
 def select_required_columns(df: DataFrame) -> DataFrame:
-    return df.select("city", "price", "accommodates", "bedrooms", "bathrooms", "amenities")
+    return df.select("city", "price", "accommodates", "bedrooms", "bathrooms", "amenities_count")
 
 
 def add_bin_number(df: DataFrame) -> DataFrame:
     return df.withColumn("bin", F.when(F.col("price") < 1, 0).otherwise(F.log10("price").cast(IntegerType()) + 1))
-
-
-def add_number_of_amenities(df: DataFrame) -> DataFrame:
-    return df.withColumn("amenities", F.size(F.split("amenities", ",")).cast(DoubleType()))
 
 
 def _get_maxes(df: DataFrame, columns: list[str]) -> dict[str, float]:
@@ -41,7 +37,6 @@ def main():
         read_parquet_data("./output/extracted_data/listing")
         .transform(select_required_columns)
         .transform(add_bin_number)
-        .transform(add_number_of_amenities)
     ).cache()
 
     os.makedirs("./output/images/sameprice/", exist_ok=True)
@@ -59,12 +54,12 @@ def main():
                 F.median("bathrooms").alias("median_bathrooms"),
                 F.mean("bedrooms").alias("mean_bedrooms"),
                 F.median("bedrooms").alias("median_bedrooms"),
-                F.mean("amenities").alias("mean_amenities"),
-                F.median("amenities").alias("median_amenities"),
+                F.mean("amenities_count").alias("mean_amenities"),
+                F.median("amenities_count").alias("median_amenities"),
             )
         )
 
-        s = 10**(b-1)
+        s = 10 ** (b - 1)
         e = 10**b
         plot_graphs(aggregates, f"accomodates_{s}-{e}", ["mean_accomodates", "median_accomodates"])
         plot_graphs(
